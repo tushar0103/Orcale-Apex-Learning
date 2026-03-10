@@ -1,0 +1,14 @@
+function customizeChartOptions(options) {
+    options.dataFilter = function(data) {
+        for (var s = 0; s < data.series.length; s++) {
+            data.series[s].pieSliceExplode = 1;
+        }
+        console.log(data);
+        return data;
+    };
+    options.styleDefaults = options.styleDefaults || {};
+    options.styleDefaults.threeDEffect = "on";
+    return options;
+}
+
+by the above code you just apply in Atribute -> advance js code 
