@@ -1,0 +1,28 @@
+function addItemToCollection() {
+
+    // Call AJAX Process
+    apex.server.process(
+        "ADD_ITEM_TO_COLLECTION",   // Name of AJAX Process
+        {
+            pageItems: "#P7_VC_SO_CODE, #P7_ITEM_CODE, #P7_QTY, #P7_PRICE, #P7_LINE_TOTAL, #P7_VAT_PERCENT, #P7_VAT_AMOUNT, #P7_DISC_PERCENT, #P7_DISC_AMOUNT"
+        },
+        {
+            dataType: "text",
+            success: function(pData) {
+
+                // Refresh report region
+                apex.region("rep").refresh();
+
+                // Optional success message
+                // apex.message.showPageSuccess("Item added successfully");
+
+            },
+            error: function(request, status, error) {
+
+                apex.message.alert("Error adding item: " + error);
+
+            }
+        }
+    );
+
+}
