@@ -26,3 +26,13 @@ function addItemToCollection() {
     );
 
 }
+
+
+-------------------syntax------------------
+
+2️⃣ Calling the PL/SQL AJAX Process
+apex.server.process(
+    "ADD_ITEM_TO_COLLECTION",
+    { pageItems: "..."},
+    { success: ..., error: ... }
+);
