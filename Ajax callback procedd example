@@ -1,0 +1,55 @@
+// by the belowcodewe can create ajax callback process for update and add tem in any regaion of oracle apex
+
+DECLARE
+    l_collection_name VARCHAR2(100) := 'ITEM_DETAILS';
+    l_exists BOOLEAN;
+    l_seq_id NUMBER;
+BEGIN
+
+    -- Create collection if not exists
+    IF NOT apex_collection.collection_exists(l_collection_name) THEN
+        apex_collection.create_collection(
+            p_collection_name => l_collection_name
+        );
+    END IF;
+
+    -- Update if record already exists
+    IF :P7_SEQ_ID IS NOT NULL THEN
+
+        apex_collection.update_member(
+            p_collection_name => l_collection_name,
+            p_seq             => :P7_SEQ_ID,
+            p_c001            => :P7_VC_SO_CODE,
+            p_c002            => :P7_ITEM_CODE,
+            p_c003            => :P7_QTY,
+            p_c004            => :P7_PRICE,
+            p_c005            => :P7_LINE_TOTAL,
+            p_c006            => :P7_VAT_PERCENT,
+            p_c007            => :P7_VAT_AMOUNT,
+            p_c008            => :P7_DISC_PERCENT,
+            p_c009            => :P7_DISC_AMOUNT
+        );
+
+    ELSE
+
+        -- Add new item
+        apex_collection.add_member(
+            p_collection_name => l_collection_name,
+            p_c001            => :P7_VC_SO_CODE,
+            p_c002            => :P7_ITEM_CODE,
+            p_c003            => :P7_QTY,
+            p_c004            => :P7_PRICE,
+            p_c005            => :P7_LINE_TOTAL,
+            p_c006            => :P7_VAT_PERCENT,
+            p_c007            => :P7_VAT_AMOUNT,
+            p_c008            => :P7_DISC_PERCENT,
+            p_c009            => :P7_DISC_AMOUNT
+        );
+
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        raise_application_error(-20001, SQLERRM);
+
+END;
