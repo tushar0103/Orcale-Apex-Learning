@@ -1,0 +1,128 @@
+What Post_Login does
+
+It performs:
+
+✔ Marks session as authenticated
+✔ Sets APP_USER
+✔ Registers login in APEX session tables
+✔ Prepares redirect to target page
+
+Wwv_Flow_Custom_Auth_Std.Post_Login(
+    p_User_Name,                 -- Username
+    p_Password,                  -- Password
+    v('APP_SESSION'),            -- Session ID
+    p_App_Id || ':100'           -- Target page
+);
+
+
+-----------------------package body -----------------
+CREATE OR REPLACE PACKAGE BODY MAKESS.PKG_AUTH_RETAIL IS
+
+FUNCTION Authenticate_User(
+    p_User_Name VARCHAR2,
+    p_Password  VARCHAR2,
+    p_Company   VARCHAR2
+) RETURN BOOLEAN 
+AS
+    v_Password   mk_users.vc_password%TYPE;
+    v_Active     mk_users.ch_user_active%TYPE;
+    v_user_code  mk_users.ch_user_code%TYPE;
+BEGIN
+
+    IF p_User_Name IS NULL OR p_Password IS NULL THEN
+        APEX_UTIL.SET_SESSION_STATE('LOGIN_MESSAGE',
+        'Enter Username and Password');
+        RETURN FALSE;
+    END IF;
+
+    BEGIN
+        SELECT decrypt(vc_password),
+               ch_user_active,
+               ch_user_code
+        INTO   v_Password,
+               v_Active,
+               v_user_code
+        FROM   mk_users
+        WHERE  UPPER(vc_user_name) = UPPER(p_User_Name)
+        AND    vc_comp_code = p_Company;
+
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            APEX_UTIL.SET_SESSION_STATE('LOGIN_MESSAGE',
+            'User not found');
+            RETURN FALSE;
+    END;
+
+    IF v_Password <> p_Password THEN
+        APEX_UTIL.SET_SESSION_STATE('LOGIN_MESSAGE',
+        'Wrong Password');
+        RETURN FALSE;
+    END IF;
+
+    IF v_Active <> 'Y' THEN
+        APEX_UTIL.SET_SESSION_STATE('LOGIN_MESSAGE',
+        'User inactive');
+        RETURN FALSE;
+    END IF;
+
+    -- Session values
+    APEX_UTIL.SET_SESSION_STATE('GLOBAL_USER_CODE', v_user_code);
+    APEX_UTIL.SET_SESSION_STATE('GLOBAL_COMP_CODE', p_Company);
+    APEX_UTIL.SET_SESSION_STATE('SESSION_USER_NAME', p_User_Name);
+
+    RETURN TRUE;
+
+END;
+
+
+PROCEDURE Process_Login(
+    p_User_Name VARCHAR2,
+    p_Password  VARCHAR2,
+    p_App_Id    NUMBER,
+    p_Company   VARCHAR2
+) 
+AS
+    v_Result BOOLEAN;
+BEGIN
+
+    v_Result := Authenticate_User(
+        p_User_Name,
+        p_Password,
+        p_Company
+    );
+
+    IF v_Result THEN
+
+      /*  APEX_AUTHENTICATION.POST_LOGIN(
+            p_username => p_User_Name
+        );*/
+Wwv_Flow_Custom_Auth_Std.Post_Login(p_User_Name -- p_User_Name
+,p_Password -- p_Password
+,v('APP_SESSION') -- p_Session_Id
+,p_App_Id || ':100' -- p_Flow_page
+);
+    END IF;
+Owa_Util.Redirect_Url('f?p=&:101:&');
+END;
+END PKG_AUTH_RETAIL;
+/
+
+
+
+CREATE OR REPLACE PACKAGE MAKESS.PKG_AUTH_RETAIL IS
+
+FUNCTION Authenticate_User(
+    p_User_Name VARCHAR2,
+    p_Password  VARCHAR2,
+    p_Company   VARCHAR2
+) RETURN BOOLEAN;
+
+PROCEDURE Process_Login(
+    p_User_Name VARCHAR2,
+    p_Password  VARCHAR2,
+    p_App_Id    NUMBER,
+    p_Company   VARCHAR2
+);
+
+END PKG_AUTH_RETAIL;
+/
