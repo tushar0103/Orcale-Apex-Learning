@@ -1,0 +1,1 @@
+forfiles -p "D:\Backup\EXPORTS" -s -m . /D -3 /C "cmd /c del @path"
